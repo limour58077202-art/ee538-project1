@@ -89,12 +89,12 @@ int main() {
     // no preallocation; vectors grow on demand
 
     // Read input files
-    read_opinions("/Users/liziyu/Desktop/C++/opinions.txt"); 
+    read_opinions("/Users/liziyu/Desktop/C++/opinions.txt"); //You can change the file's root here
     read_edges("/Users/liziyu/Desktop/C++/edge_list.txt");
 
     // convert edge list into adjacency matrix once we know total_nodes
     build_adj_matrix();
-    
+
     cout << "Total nodes: " << total_nodes << endl;
     
     // Run simulation
