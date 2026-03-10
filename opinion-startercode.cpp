@@ -9,7 +9,7 @@ void read_opinions(string filename); // reads file into opinions vector and upda
 void read_edges(string filename); // reads file into edge_list, defined later
 void build_adj_matrix(); // convert edge_list to adjacency matrix
 
-int total_nodes = 0; // We keep track of the total number of nodes based on largest node id.
+int total_nodes = 0;// We keep track of the total number of nodes based on largest node id.
 
 
 /****************************************************************/
@@ -26,32 +26,71 @@ std::vector<std::vector<int>> edge_list;
 
 void build_adj_matrix()
 {
-    
+    adj = vector<vector<int>>(total_nodes, vector<int>(total_nodes, 0));
+    for(int i = 0; i < edge_list.size(); i++)
+    {
+        int source = edge_list[i][0];
+        int target = edge_list[i][1];
+        adj[source][target] = 1;
+    }
 }
 
 double calculate_fraction_of_ones()
 {
-   
+    int count = 0;
+    for(int i = 0; i < opinions.size(); i++)
+    {
+        if(opinions[i] == 1)
+            count++;
+    }
+    return (double)count / total_nodes;
 }
 
 // For a given node, count majority opinion among its neighbours. Tie -> 0.
 int get_majority_friend_opinions(int node)
 {
-
+    int zeros = 0;
+    int ones = 0;
+    for(int i = 0; i < total_nodes; i++)
+    {
+        if(adj[i][node] == 1)
+        {
+            if(opinions[i] == 1)
+                ones++;
+            else
+                zeros++;
+        }
+    }
+    if(ones > zeros)
+        return 1;
+    else
+        return 0; // tie -> 0
 }
 
 // Calculate new opinions for all voters and return if anyone's opinion changed
 bool update_opinions()
 {
-
+    bool changed = false;
+    vector<int> new_opinions = opinions;
+    for(int i = 0; i < total_nodes; i++)
+    {
+        int majority = get_majority_friend_opinions(i);
+        if(majority != opinions[i])
+        {
+            new_opinions[i] = majority;
+            changed = true;
+        }
+    }
+    opinions = new_opinions;
+    return changed;
 }
 
 int main() {
     // no preallocation; vectors grow on demand
 
     // Read input files
-    read_opinions("opinions.txt"); 
-    read_edges("edge_list.txt");
+    read_opinions("/Users/liziyu/Desktop/C++/opinions.txt"); 
+    read_edges("/Users/liziyu/Desktop/C++/edge_list.txt");
 
     // convert edge list into adjacency matrix once we know total_nodes
     build_adj_matrix();
@@ -68,7 +107,15 @@ int main() {
          << calculate_fraction_of_ones() << endl;
     
     /// (6)  //////////////////////////////////////////////
-    
+    while(opinions_changed && iteration < max_iterations)
+    {
+    iteration++;
+
+    opinions_changed = update_opinions();
+
+    cout << "Iteration " << iteration << ": fraction of 1's = " 
+         << calculate_fraction_of_ones() << endl;
+    }
 
     ////////////////////////////////////////////////////////
     // Print final result
