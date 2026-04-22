@@ -7,18 +7,19 @@ using namespace std;
 // Function prototype. Defined later.
 void read_opinions(string filename); // reads file into opinions vector and updates total_nodes as needed
 void read_edges(string filename); // reads file into edge_list, defined later
-void build_adj_matrix(); // convert edge_list to adjacency matrix
+void build_adj_matrix(); // convert edge_list to adjacency list
 
 int total_nodes = 0;// We keep track of the total number of nodes based on largest node id.
 
 
 /****************************************************************/
 
-/******** Create adjacency matrix and vector of opinions */
+/******** Create adjacency list and vector of opinions */
 // simple vector to hold each node's opinion (0 or 1)
 std::vector<int> opinions;
 
-// global adjacency matrix initialized later
+// global adjacency list initialized later
+// adj[node] stores all voters that influence this node
 std::vector<std::vector<int>> adj;
 
 // edge list: each row contains {source, target}
@@ -26,12 +27,12 @@ std::vector<std::vector<int>> edge_list;
 
 void build_adj_matrix()
 {
-    adj = vector<vector<int>>(total_nodes, vector<int>(total_nodes, 0));
+    adj = vector<vector<int>>(total_nodes);
     for(int i = 0; i < edge_list.size(); i++)
     {
         int source = edge_list[i][0];
         int target = edge_list[i][1];
-        adj[source][target] = 1;
+        adj[target].push_back(source);
     }
 }
 
@@ -51,15 +52,13 @@ int get_majority_friend_opinions(int node)
 {
     int zeros = 0;
     int ones = 0;
-    for(int i = 0; i < total_nodes; i++)
+    for(int i = 0; i < adj[node].size(); i++)
     {
-        if(adj[i][node] == 1)
-        {
-            if(opinions[i] == 1)
-                ones++;
-            else
-                zeros++;
-        }
+        int friend_id = adj[node][i];
+        if(opinions[friend_id] == 1)
+            ones++;
+        else
+            zeros++;
     }
     if(ones > zeros)
         return 1;
@@ -89,8 +88,8 @@ int main() {
     // no preallocation; vectors grow on demand
 
     // Read input files
-    read_opinions("/Users/liziyu/Desktop/C++/opinions.txt"); //You can change the file's root here
-    read_edges("/Users/liziyu/Desktop/C++/edge_list.txt");
+    read_opinions("opinions.txt"); 
+    read_edges("edge_list.txt");
 
     // convert edge list into adjacency matrix once we know total_nodes
     build_adj_matrix();
@@ -132,6 +131,11 @@ int main() {
     
     return 0;
 }
+
+// The original code uses an adjacency matrix, which takes O(n^2) space.
+// The improved version uses an adjacency list, which takes O(n + m) space, where m is the number of edges.
+// Also, when finding the majority opinion for one node, we only check its actual influencers instead of scanning all nodes, which improves efficiency for large sparse networks.
+
 
 
 /*********** Functions to read files **************************/ 
